@@ -1,23 +1,22 @@
-
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import psycopg2
 import psycopg2.extras
-import os  # Import os module to read environment variables
 
 app = FastAPI()
 
-# ✅ Enable CORS to allow frontend requests
+# ✅ Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change "*" to your frontend URL in production
+    allow_origins=["*"],  # Replace with frontend URL for security
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ✅ Get the database URL from Render's environment variables
+# ✅ Fetch DATABASE_URL from Environment Variables
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
@@ -25,13 +24,13 @@ if not DATABASE_URL:
 
 # ✅ Connect to PostgreSQL
 try:
-    conn = psycopg2.connect(DATABASE_URL, sslmode="require")  # Ensure SSL is used
+    conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     print("✅ Successfully connected to the database")
 except Exception as e:
     print("❌ Error connecting to database:", e)
 
-# ✅ Define Newspaper Data Model
+# ✅ Define Data Model
 class Newspaper(BaseModel):
     member_name: str
     publisher_name: str
@@ -45,7 +44,7 @@ def get_newspapers():
     try:
         cur.execute("SELECT pk_id, member_name, publisher_name, publisher_email, city, state FROM newspapers")
         rows = cur.fetchall()
-        return [
+        newspapers = [
             {
                 "id": row["pk_id"],
                 "member_name": row["member_name"],
@@ -56,6 +55,7 @@ def get_newspapers():
             }
             for row in rows
         ]
+        return newspapers
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -73,7 +73,7 @@ def add_newspaper(newspaper: Newspaper):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ✅ Close database connection properly when the app shuts down
+# ✅ Close database connection properly
 @app.on_event("shutdown")
 def shutdown():
     cur.close()
