@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -6,25 +7,22 @@ import psycopg2.extras
 
 app = FastAPI()
 
-# ✅ Enable CORS to allow frontend requests
+# ✅ Enable CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with frontend URL for security (e.g., "http://localhost:3000")
+    allow_origins=["*"],  # Change "*" to your frontend URL for security
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ✅ Get DATABASE_URL from environment variables
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 # ✅ Connect to PostgreSQL
 try:
-    conn = psycopg2.connect(
-        dbname="newsaper_db",
-        user="postgres",
-        password="Windom56101!",
-        host="localhost",
-        port="5432"
-    )
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)  # Allows dictionary-style querying
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 except Exception as e:
     print("Error connecting to database:", e)
 
@@ -36,14 +34,13 @@ class Newspaper(BaseModel):
     city: str
     state: str
 
-# ✅ GET all newspapers (returns JSON)
+# ✅ GET all newspapers
 @app.get("/newspapers")
 def get_newspapers():
     try:
         cur.execute("SELECT pk_id, member_name, publisher_name, publisher_email, city, state FROM newspapers")
         rows = cur.fetchall()
 
-        # Convert rows to list of dictionaries
         newspapers = [
             {
                 "id": row["pk_id"],
@@ -59,7 +56,7 @@ def get_newspapers():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ✅ POST to add a new newspaper
+# ✅ POST a new newspaper
 @app.post("/newspapers")
 def add_newspaper(newspaper: Newspaper):
     try:
@@ -78,4 +75,3 @@ def add_newspaper(newspaper: Newspaper):
 def shutdown():
     cur.close()
     conn.close()
-
