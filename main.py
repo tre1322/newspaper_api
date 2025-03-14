@@ -41,4 +41,3 @@ def get_newspapers():
 def shutdown():
     cur.close()
     conn.close()
-e))
