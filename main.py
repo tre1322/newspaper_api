@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 import psycopg2.extras
+import os
 
 app = FastAPI()
 
@@ -14,15 +15,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Connect to PostgreSQL
+# ✅ Secure PostgreSQL Connection (Render requires SSL)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://newspaper_db_8xic_user:YOUR_PASSWORD@dpg-cv6evj3tq21c73dic400-a.ohio-postgres.render.com/newspaper_db_8xic?sslmode=require")
+
 try:
-    conn = psycopg2.connect(
-        dbname="newspaper_db_8xic",
-        user="newspaper_db_8xic_user",
-        password="YOUR_DATABASE_PASSWORD",  # Replace with actual database password
-        host="dpg-cv6evj3tq21c73dic400-a.ohio-postgres.render.com",
-        port="5432"
-    )
+    conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)  # Enables dictionary-style querying
 except Exception as e:
     print("❌ Error connecting to database:", e)
