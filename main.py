@@ -16,7 +16,8 @@ app.add_middleware(
 )
 
 # ✅ Secure PostgreSQL Connection (Render requires SSL)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://newspaper_db_8xic_user:Windom507@dpg-cv6evj3tq21c73dic400-a.ohio-postgres.render.com/newspaper_db_8xic?sslmode=require")
+DATABASE_URL = os.getenv(DATABASE_URL = "postgresql://newspaper_db_8xic_user:Pass12099Windom@dpg-cv6evj3tq21c73dic400-a.ohio-postgres.render.com/newspaper_db_8xic?sslmode=require"
+)
 
 try:
     conn = psycopg2.connect(DATABASE_URL)
